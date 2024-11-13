@@ -1,0 +1,1 @@
+"# parajecripe-jv-build"  initgit add README.mdgit commit -m "first commit"git branch -M maingit remote add origin https://github.com/JV-Garrido/parajecripe-jv-build.gitgit push -u origin main

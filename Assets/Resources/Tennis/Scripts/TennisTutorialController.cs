@@ -1,0 +1,251 @@
+﻿using UnityEngine;
+using UnityEngine.UI;
+using System.Collections;
+using UnityStandardAssets.CrossPlatformInput;
+
+public class TennisTutorialController : MonoBehaviour
+{
+	[Header("Mobile")]
+	public VariableJoystick variableJoystick;
+
+	public GameObject okMessage;
+	private float timer;
+	private bool waiting;
+	private bool canContinue;
+	public int okCount;
+	public GameObject instructionWindow;
+	public GameObject settingsCanvas;
+	public Text instWindowText;
+	public GameObject ballShooter;
+	public int hit;
+	private bool hitLeft, hitRight;
+	GameObject b2, b3, b4, b5, b6;
+	Timer t;
+    GameObject pauseCanvas;
+
+    void Start ()
+	{
+        pauseCanvas = GameObject.Find("PauseCanvas");
+        pauseCanvas.SetActive(false);
+        hit = 0;
+		okCount = 0;
+		timer = 0;
+		canContinue = false;
+		waiting = false;
+		instructionWindow.SetActive (true);
+		ballShooter.SetActive (false);
+		hitLeft = false;
+		hitRight = false;
+		
+		b2 = GameObject.Find ("Balloon2");
+		b2.SetActive (false);
+		b3 = GameObject.Find ("Balloon3");
+		b3.SetActive (false);
+		b4 = GameObject.Find ("Balloon4");
+		b4.SetActive(false);
+		b5 = GameObject.Find ("Balloon5");
+		b5.SetActive(false);
+		b6 = GameObject.Find ("Balloon6");
+		b6.SetActive(false);
+		
+		instWindowText.text = "";
+		
+		t = GetComponent<Timer> ();
+        Time.timeScale = 1;
+	}
+
+	void Update ()
+	{
+	
+		if (okCount == 0) {
+			
+			if (Time.timeSinceLevelLoad > 0.8 && Time.timeSinceLevelLoad < 3) {
+				instWindowText.text = "Seja bem-vindo(a) ao jogo de tênis em cadeira de rodas!";
+			} else if (Time.timeSinceLevelLoad >= 3) {
+				instWindowText.text = "Aperte ENTER ou toque AQUI para aprender a jogar!";
+				if (Input.GetKeyDown (KeyCode.Return)) {
+					okCount++;
+					GameObject.Find ("Balloon1").SetActive (false);
+					b2.SetActive (true);
+					t.SetTimer ();
+				}
+#if MOBILE_INPUT
+				if (CrossPlatformInputManager.GetButtonDown("Return"))
+				{
+					okCount++;
+					GameObject.Find("Balloon1").SetActive(false);
+					b2.SetActive(true);
+					t.SetTimer();
+				}
+#endif
+			}
+
+
+		} else if (okCount == 1) {
+		
+			if (t.time > 0.5) {
+				b2.GetComponentInChildren<Text> ().text = "Use as SETAS ou WASD para se mover, se estiver no mobile use o Joystick.";
+				if (canContinue == false && waiting == false) {		
+					if (Input.GetAxis ("Horizontal") != 0 || Input.GetAxis ("Vertical") != 0) {
+						okCount++;
+						t.SetTimer ();
+					}
+					if (variableJoystick.Horizontal != 0 || variableJoystick.Vertical != 0)
+					{
+						okCount++;
+						t.SetTimer();
+					}
+				}
+			}
+		} 
+		
+		
+		else if (okCount == 2) {
+			
+			if (t.time > 0.8 && t.time < 1.8) {
+				b2.SetActive (false);
+				b3.SetActive (true);
+			} else if (t.time >= 1.8 && t.time < 3) {
+				b3.GetComponentInChildren<Text> ().text = "Muito bem!";
+			} else if (t.time >= 3 && t.time < 5.8) {
+				b3.GetComponentInChildren<Text> ().text = "Agora tente rebater TRÊS bolas.";
+				ballShooter.SetActive (true);
+			} else if (t.time >= 5.8 && t.time < 6) {
+				b3.GetComponentInChildren<Text> ().text = "Mova-se até as bolas e clique Espaço para rebater.";
+				//b3.GetComponentInChildren<Text> ().text = "Mova-se até as bolas para rebatê-las.";
+			} else if (t.time >= 6) {
+				if (hit == 6) {
+					okCount++;
+					b3.GetComponentInChildren<Text>().text = "Isso!";
+					t.SetTimer ();
+				}
+			}
+		} 
+		
+		
+		else if (okCount == 3){
+		
+			if(t.time > 0.8 && t.time < 1.8){
+				if (b3.activeSelf == true) {
+					b3.SetActive (false);
+					DestroyBalls();
+				}
+				b4.SetActive(true);
+			} else if (t.time >= 1.8){
+				if(t.time < 4.6){
+					b4.GetComponentInChildren<Text>().text = "Agora rebata uma bola para a esquerda!";
+				} else if (t.time >= 4.6){
+					b4.GetComponentInChildren<Text>().text = "Dica: gire para a esquerda antes de rebater";
+				}
+				ballShooter.SetActive(true);
+				if(hitLeft == true){
+					b4.GetComponentInChildren<Text>().text = "Ótimo!";
+					okCount++;
+					DestroyBalls();
+					t.SetTimer();
+				}
+			} 
+			
+		}
+		
+		else if (okCount == 4){
+			if(t.time > 1.8 && t.time < 3){
+				b4.SetActive(false);
+				b5.SetActive(true);
+			} else if (t.time >= 3){
+				ballShooter.SetActive(true);
+				if(t.time < 7){
+					b5.GetComponentInChildren<Text>().text = "Agora rebata uma bola para a direita!";
+				} else {
+					b5.GetComponentInChildren<Text>().text = "Dica: gire para a direita antes de rebater";
+				} 
+				if(hitRight == true){
+					b5.GetComponentInChildren<Text>().text = "Ótimo!";
+					okCount++;
+					t.SetTimer();
+				}
+			}
+		}
+		
+		else if (okCount == 5){
+			b6.SetActive(true);
+			if(t.time > 0.5 && t.time < 1.8){
+				b5.SetActive(false);
+			}
+			if(t.time > 1.8 && t.time < 4.5){
+				b6.GetComponentInChildren<Text>().text = "Parabéns! Você já sabe jogar tênis em cadeira de rodas!";
+			} else if (t.time > 4.5 && t.time < 8.3){
+				b6.GetComponentInChildren<Text>().text = "Lembre-se: a bola pode quicar DUAS vezes antes de ser rebatida";
+			} else if (t.time >= 8.3){
+				b6.GetComponentInChildren<Text>().text = "Aperte ENTER para jogar ou toque AQUI.";/*ou toque na tala.*/
+				if (Input.GetKeyDown(KeyCode.Return))
+                {
+                    Application.LoadLevel("TennisGame");
+                }
+#if MOBILE_INPUT
+				if (CrossPlatformInputManager.GetButtonDown("Return"))
+				{
+					Application.LoadLevel("TennisGame");
+				}
+#endif
+			}
+		}	
+	}
+	
+		/*LEMBRE-SE: No tenis em cadeira" +
+					" de rodas, a bola pode quicar duas vezes antes de ser rebatida*/
+		
+
+
+	public void AddHit ()
+	{
+		
+		hit++;
+		if (hit >= 6 && okCount == 4) {
+			waiting = true;
+		}
+	}
+
+	public void HitLeft ()
+	{
+		if (okCount == 3 && hitLeft == false) {
+			Debug.Log ("Hitleft");
+			hitLeft = true;
+		}
+	}
+
+	public void HitRight ()
+	{
+		if (okCount == 4 && hitRight == false) {
+			Debug.Log ("HitRight");
+			hitRight = true;
+		}
+	}
+	
+	void DestroyBalls(){
+		
+		foreach (GameObject g in GameObject.FindGameObjectsWithTag("Ball")) {
+			Destroy (g);
+		}
+	}
+
+    /// <summary>
+    /// Pauses the game.
+    /// </summary>
+    public void PauseGame()
+    {
+
+        if (Time.timeScale == 1)
+        {
+            Time.timeScale = 0;
+            pauseCanvas.SetActive(true);
+        }
+        else if (Time.timeScale == 0)
+        {
+            Time.timeScale = 1;
+            pauseCanvas.SetActive(false);
+			settingsCanvas.SetActive (false);
+        }
+
+    }
+}
